@@ -1,10 +1,8 @@
 # Laravel 5 Shopping Cart
-[![Build Status](https://travis-ci.org/darryldecode/laravelshoppingcart.svg?branch=master)](https://travis-ci.org/darryldecode/laravelshoppingcart)
-[![Scrutinizer Quality Score](https://scrutinizer-ci.com/g/darryldecode/laravelshoppingcart/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/darryldecode/laravelshoppingcart/)
-[![Total Downloads](https://poser.pugx.org/darryldecode/cart/d/total.svg)](https://packagist.org/packages/darryldecode/cart)
-[![License](https://poser.pugx.org/darryldecode/cart/license.svg)](https://packagist.org/packages/darryldecode/cart)
+[![Total Downloads](https://poser.pugx.org/darryldecode/cart/d/total.svg)](https://packagist.org/packages/jlopezcur/cart)
+[![License](https://poser.pugx.org/darryldecode/cart/license.svg)](https://packagist.org/packages/jlopezcur/cart)
 
-A Shopping Cart Implementation for Laravel Framework
+A Shopping Cart Implementation for Laravel Framework (Based on the impressive work of darryldecode [https://github.com/darryldecode])
 
 ##INSTALLATION
 
@@ -22,24 +20,24 @@ Install the package through [Composer](http://getcomposer.org/). Edit your proje
 Next, run the Composer update command from the Terminal:
 
     composer update
-    
+
     or
-    
+
     composer update "darryldecode/cart"
 
 ##CONFIGURATION
 
 1. Open config/app.php and addd this line to your Service Providers Array
   ```php
-  'Darryldecode\Cart\CartServiceProvider'
+  Darryldecode\Cart\CartServiceProvider::class
   ```
-  
+
 2. Open config/app.php and addd this line to your Aliases
 
 ```php
-  'Cart' => 'Darryldecode\Cart\Facades\CartFacade'
+  'Cart' => Darryldecode\Cart\Facades\CartFacade::class
   ```
-  
+
 ## HOW TO USE
 * [Usage](#usage)
 * [Conditions](#conditions)
@@ -78,6 +76,10 @@ Cart::add(array(
     'id' => 456,
     'name' => 'Sample Item',
     'price' => 67.99,
+	'model' => 'base',
+	'image' => 'product01.jpg',
+	'points' => 100,
+	'reward' => 120,
     'quantity' => 4,
     'attributes' => array()
 ));
@@ -145,7 +147,7 @@ Removing an item on a cart is very easy:
  *
  * @param $id
  */
-   
+
 Cart::remove(456);
 ```
 
@@ -263,7 +265,7 @@ Conditions can be added on:
 First let's add a condition on a Cart Bases:
 
 There are also several ways of adding a condition on a cart:
-NOTE: 
+NOTE:
 
 When adding a condition on a cart bases, the 'target' should have value of 'subtotal'.
 And when adding a condition on an item, the 'target' should be 'item'.
@@ -365,7 +367,7 @@ $product = array(
             'attributes' => array(),
             'conditions' => $saleCondition
         );
-        
+
 // finally add the product on the cart
 Cart::add($product);
 
@@ -388,7 +390,7 @@ $itemCondition3 = new \Darryldecode\Cart\CartCondition(array(
     'target' => 'item',
     'value' => '+10',
 ));
-  
+
 $item = array(
           'id' => 456,
           'name' => 'Sample Item 1',
@@ -397,7 +399,7 @@ $item = array(
           'attributes' => array(),
           'conditions' => [$itemCondition1, $itemCondition2, $itemCondition3]
       );
-        
+
 Cart::add($item);
 ```
 
@@ -423,7 +425,7 @@ $coupon101 = new CartCondition(array(
             'target' => 'item',
             'value' => '-5%',
         ));
-        
+
 Cart::addItemCondition($productID, $coupon101);
 ```
 
@@ -586,10 +588,10 @@ foreach($items as $item)
     $item->price; // the price
     $item->quantity; // the quantity
     $item->attributes; // the attributes
-    
+
     // Note that attribute returns ItemAttributeCollection object that extends the native laravel collection
     // so you can do things like below:
-    
+
     if( $item->attributes->has('size') )
     {
         // item has attribute size

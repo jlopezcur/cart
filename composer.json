@@ -1,9 +1,13 @@
 {
-    "name": "darryldecode/cart",
+    "name": "jlopezcur/cart",
     "description": "Laravel 5 Shopping cart",
     "keywords": ["laravel", "shopping cart", "cart"],
     "license": "MIT",
     "authors": [
+        {
+            "name": "Javier López Úbeda",
+            "email": "jlopezcur@gmail.com"
+        },
         {
             "name": "Darryl Fernandez",
             "email": "engrdarrylfernandez@gmail.com"
