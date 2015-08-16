@@ -120,8 +120,8 @@ class Cart {
             'price' => Helpers::normalizePrice($params['price']),
             'points' => $params['points'],
             'quantity' => $params['quantity'],
-            'attributes' => new ItemAttributeCollection($params['attributes']),
-            'conditions' => $params['conditions'],
+            'attributes' => new ItemAttributeCollection((isset($params['attributes']) ? $params['attributes'] : [])),
+            'conditions' => (isset($params['conditions']) ? $params['conditions'] : []),
         ));
 
         // get the cart
