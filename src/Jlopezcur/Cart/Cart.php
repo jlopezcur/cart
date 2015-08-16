@@ -466,7 +466,7 @@ class Cart {
     {
         $cart = $this->getContent();
 
-        $sum = $cart->sum(function($item)
+        $sum = $cart->sum(function($item) use ($type)
         {
             $originalPrice = $item->price;
             $newPrice = 0.00;
