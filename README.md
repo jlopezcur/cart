@@ -13,7 +13,7 @@ Install the package through [Composer](http://getcomposer.org/). Edit your proje
 ```php
 "require": {
 	"laravel/framework": "5.0.*",
-	"darryldecode/cart": "dev-master"
+	"jlopezcur/cart": "dev-master"
 }
 ```
 
@@ -23,7 +23,7 @@ Next, run the Composer update command from the Terminal:
 
     or
 
-    composer update "darryldecode/cart"
+    composer update "jlopezcur/cart"
 
 ##CONFIGURATION
 
@@ -276,7 +276,7 @@ Also, when adding conditions, the 'value' field will be the bases of calculation
 ```php
 
 // add single condition on a cart bases
-$condition = new \Darryldecode\Cart\CartCondition(array(
+$condition = new \Jlopezcur\Cart\CartCondition(array(
     'name' => 'VAT 12.5%',
     'type' => 'tax',
     'target' => 'subtotal',
@@ -290,13 +290,13 @@ $condition = new \Darryldecode\Cart\CartCondition(array(
 Cart::condition($condition);
 
 // or add multiple conditions from different condition instances
-$condition1 = new \Darryldecode\Cart\CartCondition(array(
+$condition1 = new \Jlopezcur\Cart\CartCondition(array(
     'name' => 'VAT 12.5%',
     'type' => 'tax',
     'target' => 'subtotal',
     'value' => '12.5%',
 ));
-$condition2 = new \Darryldecode\Cart\CartCondition(array(
+$condition2 = new \Jlopezcur\Cart\CartCondition(array(
     'name' => 'Express Shipping $15',
     'type' => 'shipping',
     'target' => 'subtotal',
@@ -351,7 +351,7 @@ Now let's add condition on an item.
 ```php
 
 // lets create first our condition instance
-$saleCondition = new \Darryldecode\Cart\CartCondition(array(
+$saleCondition = new \Jlopezcur\Cart\CartCondition(array(
             'name' => 'SALE 5%',
             'type' => 'tax',
             'target' => 'item',
@@ -372,7 +372,7 @@ $product = array(
 Cart::add($product);
 
 // you may also add multiple condition on an item
-$itemCondition1 = new \Darryldecode\Cart\CartCondition(array(
+$itemCondition1 = new \Jlopezcur\Cart\CartCondition(array(
     'name' => 'SALE 5%',
     'type' => 'sale',
     'target' => 'item',
@@ -384,7 +384,7 @@ $itemCondition2 = new CartCondition(array(
     'target' => 'item',
     'value' => '-25',
 ));
-$itemCondition3 = new \Darryldecode\Cart\CartCondition(array(
+$itemCondition3 = new \Jlopezcur\Cart\CartCondition(array(
     'name' => 'MISC',
     'type' => 'misc',
     'target' => 'item',
