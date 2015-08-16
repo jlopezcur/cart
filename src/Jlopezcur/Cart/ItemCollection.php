@@ -16,9 +16,10 @@ class ItemCollection extends Collection {
      *
      * @return mixed|null
      */
-    public function getPriceSum()
+    public function getPriceSum($type = 'price')
     {
-        return $this->price * $this->quantity;
+        if ($type == 'price') return $this->price * $this->quantity;
+        return $this->points * $this->quantity;
     }
 
     public function __get($name)
