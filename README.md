@@ -29,13 +29,13 @@ Next, run the Composer update command from the Terminal:
 
 1. Open config/app.php and addd this line to your Service Providers Array
   ```php
-  Darryldecode\Cart\CartServiceProvider::class
+  Jlopezcur\Cart\CartServiceProvider::class
   ```
 
 2. Open config/app.php and addd this line to your Aliases
 
 ```php
-  'Cart' => Darryldecode\Cart\Facades\CartFacade::class
+  'Cart' => Jlopezcur\Cart\Facades\CartFacade::class
   ```
 
 ## HOW TO USE
