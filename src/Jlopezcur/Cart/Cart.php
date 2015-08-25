@@ -10,6 +10,9 @@ class Cart {
     protected $events;          // The event dispatcher
     protected $instance_name;    // The cart session key
 
+    protected $session_key_items;
+    protected $session_key_conditions;
+
     protected $items;           // CartItemCollection
     protected $conditions;      // CartConditionCollection
 
@@ -25,6 +28,9 @@ class Cart {
         $this->events = $events;
         $this->session = $session;
         $this->instance_name = $instance_name;
+
+        $this->session_key_items = $session_key.'_cart_items';
+        $this->session_key_conditions = $session_key.'_cart_conditions';
 
         $this->items = new CartItemCollection($session, $session_key.'_cart_items', $this->events, $this->instance_name);
         $this->conditions = new CartConditionCollection($session, $session_key.'_cart_conditions', $this->events, $this->instance_name);
@@ -42,14 +48,14 @@ class Cart {
      * Items
      */
 
-    public function getContent() { return $this->items; }
-    public function has($id) { return $this->items->has($id); }
-    public function get($id) { return $this->items->get($id); }
-    public function add($params = []) { $this->items->addItem($params); return $this; }
-    public function update($id, $data) { $this->items->updateItem($id, $data); return $this; }
-    public function remove($id) { $this->items->remove($id); return $this; }
-    public function clear() { $this->items->clear(); return $this; }
-    public function isEmpty() { return $this->items->isEmpty(); }
+    public function getContent() { return new CartItemCollection($this->session, $this->session_key_items, $this->events, $this->instance_name); }
+    public function has($id) { $items = $this->getContent(); return $items->has($id); }
+    public function get($id) { $items = $this->getContent(); return $items->get($id); }
+    public function add($params = []) { $items = $this->getContent(); $items->addItem($params); return $this; }
+    public function update($id, $data) { $items = $this->getContent(); $items->updateItem($id, $data); return $this; }
+    public function remove($id) { $items = $this->getContent(); $items->remove($id); return $this; }
+    public function clear() { $items = $this->getContent(); $items->clear(); return $this; }
+    public function isEmpty() { $items = $this->getContent(); return $items->isEmpty(); }
 
     public function addItemCondition($id, $condition) {
         if ($item = $this->get($id)) {
