@@ -1,4 +1,6 @@
-<?php namespace Jlopezcur\Cart;
+<?php
+namespace Jlopezcur\Cart;
+
 use Exception;
 use Jlopezcur\Cart\Helpers\Helpers;
 use Validator;

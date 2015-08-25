@@ -1,11 +1,11 @@
-<?php namespace Jlopezcur\Cart\Facades;
+<?php
+namespace Jlopezcur\Cart\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 class CartFacade extends Facade {
 
-    protected static function getFacadeAccessor()
-    {
+    protected static function getFacadeAccessor() {
         return 'cart';
     }
 }
