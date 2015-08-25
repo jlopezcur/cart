@@ -16,10 +16,8 @@ class CartServiceProvider extends ServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register()
-	{
-		$this->app['cart'] = $this->app->share(function($app)
-		{
+	public function register() {
+		$this->app['cart'] = $this->app->share(function($app) {
 			$storage = $app['session'];
 			$events = $app['events'];
 			$instanceName = 'cart';
@@ -39,8 +37,7 @@ class CartServiceProvider extends ServiceProvider {
 	 *
 	 * @return array
 	 */
-	public function provides()
-	{
+	public function provides() {
 		return array();
 	}
 }
