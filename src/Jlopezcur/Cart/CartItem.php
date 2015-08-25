@@ -45,6 +45,10 @@ class CartItem {
         return $this->points * $this->quantity;
     }
 
+    /**
+     * Conditions
+     */
+
     public function hasConditions() {
         if (!isset($this->conditions)) return false;
         if (is_array($this->conditions)) return count($this->conditions) > 0;
@@ -53,6 +57,18 @@ class CartItem {
         if ($this->conditions instanceof $conditionInstance) return true;
 
         return false;
+    }
+
+    public function addItemCondition($condition) {
+        array_push($this->conditions, $condition);
+        return $this;
+    }
+
+    public function removeItemCondition($condition_name) {
+        foreach($this->conditions as $key => $condition) {
+            if($condition->getName() == $condition_name) unset($this->conditions[$key]);
+        }
+        return $this;
     }
 
     /**
