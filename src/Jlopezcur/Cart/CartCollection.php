@@ -52,5 +52,4 @@ class CartCollection extends Collection {
         return $this->getItems()->getSubTotalWithoutConditions($type);
     }
 
-
 }

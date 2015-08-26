@@ -73,6 +73,18 @@ class CartItem {
         return $value * $this->quantity;
     }
 
+    public function addItemCondition($condition) {
+        array_push($this->conditions, $condition);
+        return $this;
+    }
+
+    public function removeItemCondition($condition_name) {
+        foreach($this->conditions as $key => $condition) {
+            if($condition->getName() == $condition_name) unset($this->conditions[$key]);
+        }
+        return $this;
+    }
+
     /**
      * Getters & Setters
      */
