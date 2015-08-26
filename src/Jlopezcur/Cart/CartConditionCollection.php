@@ -2,30 +2,22 @@
 namespace Jlopezcur\Cart;
 
 use Illuminate\Support\Collection;
+use Event;
 
 class CartConditionCollection extends Collection {
 
-    protected $session;
-    protected $sessionKey;
-    protected $events;
-    protected $instanceName;
+    protected $instance;
 
-    public function __construct($session, $sessionKey = '', $events = null, $instanceName = '') {
-        $this->session = $session;
-        $this->sessionKey = $sessionKey;
-        $this->events = $events;
-        $this->instanceName = $instanceName;
-
-        $items = $this->session->get($this->sessionKey);
-        parent::__construct($items);
+    public function __construct($instance = 'main') {
+        $this->instance = $instance;
+        parent::__construct();
     }
 
-    public function addCondition() {
-        if (is_array($condition)) foreach($condition as $c) $this->condition($c);
-        else {
-            $this->conditions->put($condition->getName(), $condition);
-            $this->save();
-        }
+    public function addCondition($condition) {
+        Event::fire($this->instance.'.adding-condition', [$this]);
+        if (is_array($condition)) foreach($condition as $c) $this->addCondition($c);
+        else $this->put($condition->getName(), $condition);
+        Event::fire($this->instance.'.added-condition', [$this]);
         return $this;
     }
 
@@ -36,25 +28,23 @@ class CartConditionCollection extends Collection {
     }
 
     public function removeConditionsByType($type) {
+        Event::fire($this->instance.'.removing-by-type-condition', [$type, $this]);
         $this->getConditionsByType($type)->each(function($condition) {
             $this->removeCartCondition($condition->getName());
         });
+        Event::fire($this->instance.'.removed-by-type-condition', [$type, $this]);
     }
 
-    public function removeCondition($conditionName) {
-        $this->forget($conditionName);
-        $this->save();
+    public function removeCondition($condition_name) {
+        Event::fire($this->instance.'.removing-condition', [$condition_name, $this]);
+        $this->forget($condition_name);
+        Event::fire($this->instance.'.removed-condition', [$condition_name, $this]);
     }
 
     public function clear() {
-        $this->events->fire($this->instanceName.'.clearing-condition', [$this]);
+        Event::fire($this->instance.'.clearing-condition', [$this]);
         foreach ($this->all() as $condition) $this->forget($condition->id);
-        $this->save();
-        $this->events->fire($this->instanceName.'.cleared-condition', [$this]);
-    }
-
-    public function save() {
-        $this->session->put($this->sessionKey, $this);
+        Event::fire($this->instance.'.cleared-condition', [$this]);
     }
 
 }

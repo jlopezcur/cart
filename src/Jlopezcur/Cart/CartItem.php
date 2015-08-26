@@ -14,7 +14,7 @@ class CartItem {
     private $points;
     private $quantity;
     private $attributes = [];
-    private $conditions = [];
+    private $conditions;
 
     public function __construct(array $args) {
         if ($this->validate($args)) {
@@ -25,7 +25,13 @@ class CartItem {
             if (isset($args['points'])) $this->points = $args['points'];
             $this->quantity = $args['quantity'];
             if (isset($args['attributes'])) $this->attributes = new ItemAttributeCollection($args['attributes']);
-            if (isset($args['conditions'])) $this->conditions = $args['conditions'];
+
+            $this->conditions = new CartConditionCollection('item-conditions');
+            if (isset($args['conditions'])) {
+                foreach ($args['conditions'] as $condition) {
+                    $this->conditions->addCondition($condition);
+                }
+            }
         }
     }
 
@@ -45,14 +51,26 @@ class CartItem {
         return $this->points * $this->quantity;
     }
 
-    public function hasConditions() {
-        if (!isset($this->conditions)) return false;
-        if (is_array($this->conditions)) return count($this->conditions) > 0;
+    /**
+     * Conditions
+     */
 
-        $conditionInstance = "Jlopezcur\\Cart\\CartCondition";
-        if ($this->conditions instanceof $conditionInstance) return true;
+    public function getConditions() { return $this->conditions; }
 
-        return false;
+    public function hasConditions() { return ($this->conditions->count() > 0); }
+    public function addItemCondition($condition) { $this->conditions->addCondition($condition); return $this; }
+    public function removeItemCondition($condition_name) { $this->conditions->removeCondition($condition_name); return $this; }
+
+    public function getSubTotal($type = 'price') {
+        $value = $this->price; if ($type === 'points') $value = $this->points;
+        if ($this->hasConditions()) {
+            foreach($this->conditions->all() as $condition) {
+                if($condition->getTarget() === 'item' && $condition->getUnit() === $type) {
+                    $value = $condition->applyCondition($value);
+                }
+            }
+        }
+        return $value * $this->quantity;
     }
 
     /**

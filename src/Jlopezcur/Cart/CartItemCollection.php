@@ -1,37 +1,20 @@
-<?php namespace Jlopezcur\Cart;
+<?php
+namespace Jlopezcur\Cart;
 
 use Illuminate\Support\Collection;
 use Jlopezcur\Cart\Helpers\Helpers;
-use Session;
 use Event;
 
 class CartItemCollection extends Collection {
 
-    protected $session;
-    protected $sessionKey;
-    protected $events;
-    protected $instanceName;
+    protected $instance;
 
-    public function __construct($session, $sessionKey = '', $events = null, $instanceName = '') {
-        $this->session = $session;
-        $this->sessionKey = $sessionKey;
-        $this->events = $events;
-        $this->instanceName = $instanceName;
-
-        parent::__construct($this->session->get($this->sessionKey));
-        Event::listen('session.started', function($user) {
-            $items = Session::get($this->sessionKey);
-            dd($items);
-            if ($items != null) {
-                foreach ($items as $item) {
-                    $this->put($item->id, $item);
-                }
-            }
-        });
+    public function __construct($instance = '') {
+        $this->instance = $instance;
+        parent::__construct();
     }
 
     public function addItem($params = []) {
-        $this->load();
         if (Helpers::isMultiArray($params)) foreach($params as $item) $this->addItem($item);
 
         $item = new CartItem($params);
@@ -39,18 +22,20 @@ class CartItemCollection extends Collection {
 
         if($this->has($id)) $this->updateItem($id, $item);
         else {
-            $this->events->fire($this->instanceName.'.adding', [$item, $this]);
+            Event::fire($this->instance.'.adding', [$item, $this]);
             $this->put($id, $item);
-            $this->save();
-            $this->events->fire($this->instanceName.'.added', [$item, $this]);
+            Event::fire($this->instance.'.added', [$item, $this]);
         }
     }
 
-    public function updateItem($id, $data) {
-        $this->load();
-        $item = $this->pull($id);
+    public function updateQuantity($id, $quantity) {
+        $this->get($id)->quantity = $quantity;
+        return $this;
+    }
 
-        $this->events->fire($this->instanceName.'.updating', [$item, $this]);
+    public function updateItem($id, $data) {
+        $item = $this->pull($id);
+        Event::fire($this->instance.'.updating', [$item, $this]);
         foreach($data as $key => $value) {
             // if the key is currently "quantity" we will need to check if an arithmetic
             // symbol is present so we can decide if the update of quantity is being added
@@ -74,70 +59,87 @@ class CartItemCollection extends Collection {
             }
         }
         $this->put($id, $item);
-
-        $this->save();
-        $this->events->fire($this->instanceName.'.updated', [$item, $this]);
+        Event::fire($this->instance.'.updated', [$item, $this]);
     }
 
     public function remove($id) {
-        $this->load();
-        $this->events->fire($this->instanceName.'.removing', [$id, $this]);
+        Event::fire($this->instance.'.removing', [$id, $this]);
         $this->forget($id);
-        $this->save();
-        $this->events->fire($this->instanceName.'.removed', [$id, $this]);
+        Event::fire($this->instance.'.removed', [$id, $this]);
     }
 
     public function clear() {
-        $this->load();
-        $this->events->fire($this->instanceName.'.clearing', [$this]);
+        Event::fire($this->instance.'.clearing', [$this]);
         foreach ($this->all() as $item) $this->forget($item->id);
-        $this->save();
-        $this->events->fire($this->instanceName.'.cleared', [$this]);
+        Event::fire($this->instance.'.cleared', [$this]);
     }
 
+
+    /**
+     * Totals
+     */
+
     public function getTotalQuantity() {
-        $this->load();
         if ($this->isEmpty()) return 0;
-        $count = $this->sum(function($item) { return $item->quantity; });
-        return $count;
+        return $this->sum(function($item) { return $item->quantity; });
     }
 
     public function getSubTotal($type = 'price') {
-        $this->load();
-        $sum = $this->sum(function($item) use ($type) {
-            $originalPrice = $item->price;
-            $newPrice = 0.00;
-
-            if ($type === 'points') { $originalPrice = $item->points; $newPrice = 0; }
-
-            $processed = 0;
-            if ($item->hasConditions()) {
-                if(!is_array($item->conditions)) $item->conditions = [$item->conditions];
-
-                foreach($item->conditions as $condition) {
-                    if($condition->getTarget() === 'item' && $condition->getUnit() === $type) {
-                        ($processed > 0) ? $toBeCalculated = $newPrice : $toBeCalculated = $originalPrice;
-                        $newPrice = $condition->applyCondition($toBeCalculated);
-                        $processed++;
-                    } else {
-                        $newPrice = $originalPrice;
-                    }
-                }
-                return $newPrice * $item->quantity;
-            } else return $originalPrice * $item->quantity;
-        });
-
-        $out = floatval($sum);
-        if ($type == 'points') $out = floor($sum);
-
+        $sum = $this->sum(function($item) use ($type) { return $item->getSubTotal($type); });
+        $out = floatval($sum); if ($type == 'points') $out = floor($sum);
         return $out;
     }
 
-    public function load() {
-
+    public function getSubTotalWithoutConditions($type = 'price') {
+        if ($this->isEmpty()) return 0;
+        $sum = $this->sum(function($item) use ($type) { return $item->getPriceSum($type); });
+        $out = floatval($sum); if ($type == 'points') $out = floor($sum);
+        return $out;
     }
 
-    public function save() {
-        $this->session->put($this->sessionKey, $this);
+    /**
+     * Conditions
+     */
+
+    public function addItemCondition($id, $condition) {
+        if ($item = $this->get($id)) {
+            Event::fire($this->instance.'.adding-item-condition', [$id, $condition, $this]);
+            $item->addItemCondition($condition);
+            Event::fire($this->instance.'.added-item-condition', [$id, $condition, $this]);
+        }
+        return $this;
     }
+
+    public function removeItemCondition($id, $condition_name) {
+        if($item = $this->get($id)) {
+            Event::fire($this->instance.'.removing-item-condition', [$id, $condition_name, $this]);
+            $item->removeItemCondition($condition_name);
+            Event::fire($this->instance.'.removed-item-condition', [$id, $condition_name, $this]);
+        }
+        return $this;
+    }
+
+    public function countItemConditionDifferentFromType($type) {
+        $different = [];
+        foreach ($this->all() as $item) {
+            foreach($item->conditions as $condition) {
+                if ($condition->getType() != $type) continue;
+                if (!in_array($condition->getName(), $different)) array_push($different, $condition->getName());
+            }
+        }
+        return count($different);
+    }
+
+    public function getSumConditionFromType($type) {
+        $sum = 0;
+        foreach ($this->all() as $item) {
+            foreach($item->conditions as $condition) {
+                if ($condition->getType() != $type) continue;
+                $sum += $item->price * $condition->getValue() / 100;
+            }
+            $sum *= $item->quantity;
+        }
+        return $sum;
+    }
+
 }
