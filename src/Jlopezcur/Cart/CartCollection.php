@@ -52,4 +52,10 @@ class CartCollection extends Collection {
         return $this->getItems()->getSubTotalWithoutConditions($type);
     }
 
+    public function clear() {
+        $this->getItems()->clear();
+        $this->getConditions()->clear();
+        return $this;
+    }
+
 }
