@@ -5,7 +5,7 @@ use Exception;
 use Jlopezcur\Cart\Helpers\Helpers;
 use Validator;
 
-class CartCondition {
+class Condition {
 
     private $args;
     private $parsedRawValue;

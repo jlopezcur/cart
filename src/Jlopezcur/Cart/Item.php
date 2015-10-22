@@ -5,7 +5,7 @@ use Exception;
 use Jlopezcur\Cart\Helpers\Helpers;
 use Validator;
 
-class CartItem {
+class Item {
 
     private $id;
     private $name;
@@ -26,7 +26,7 @@ class CartItem {
             $this->quantity = $args['quantity'];
             if (isset($args['attributes'])) $this->attributes = new ItemAttributeCollection($args['attributes']);
 
-            $this->conditions = new CartConditionCollection('item-conditions');
+            $this->conditions = new ConditionCollection('item-conditions');
             if (isset($args['conditions'])) {
                 foreach ($args['conditions'] as $condition) {
                     $this->conditions->addCondition($condition);
@@ -46,9 +46,52 @@ class CartItem {
         return true;
     }
 
-    public function getPriceSum($type = 'price') {
-        if ($type == 'price') return $this->price * $this->quantity;
-        return $this->points * $this->quantity;
+    /**
+     * Return price of the product width or without conditions
+     * @param boolean $condition Return price with conditions or not
+     * @return float Price of the product
+     */
+    public function getPrice($conditions = false) {
+        $price = $this->price;
+        if ($conditions) {
+            foreach($this->conditions->all() as $condition) {
+                if($condition->getUnit() === 'price') {
+                    $price = $condition->applyCondition($price);
+                }
+            }
+        }
+        return $price;
+    }
+
+    /**
+     * Return points of the product
+     * @return integer Points of the product
+     */
+    public function getPoints($conditions = false) {
+        $points = $this->points;
+        if ($conditions) {
+            foreach($this->conditions->all() as $condition) {
+                if($condition->getUnit() === 'points') {
+                    $points = $condition->applyCondition($points);
+                }
+            }
+        }
+        return $points;
+    }
+
+    /**
+     * Return price (with or without conditions) or points multiplied by quantity
+     * @param string $type 'points' or 'price', by default: 'price'
+     * @param boolean $condition Return price with conditions or not
+     * @return mixed Return price or points multiplied by quantity
+     */
+    public function getSum($type = 'price', $conditions = false) {
+        if ($type == 'price') {
+            return $this->getPrice($conditions) * $this->quantity;
+        } else if ($type == 'points') {
+            return $this->getPoints($conditions) * $this->quantity;
+        }
+        return 0;
     }
 
     /**
@@ -58,20 +101,8 @@ class CartItem {
     public function getConditions() { return $this->conditions; }
 
     public function hasConditions() { return ($this->conditions->count() > 0); }
-    public function addItemCondition($condition) { $this->conditions->addCondition($condition); return $this; }
-    public function removeItemCondition($condition_name) { $this->conditions->removeCondition($condition_name); return $this; }
-
-    public function getSubTotal($type = 'price') {
-        $value = $this->price; if ($type === 'points') $value = $this->points;
-        if ($this->hasConditions()) {
-            foreach($this->conditions->all() as $condition) {
-                if($condition->getTarget() === 'item' && $condition->getUnit() === $type) {
-                    $value = $condition->applyCondition($value);
-                }
-            }
-        }
-        return $value * $this->quantity;
-    }
+    public function addCondition($condition) { $this->conditions->addCondition($condition); return $this; }
+    public function removeCondition($condition_name) { $this->conditions->removeCondition($condition_name); return $this; }
 
     /**
      * Getters & Setters

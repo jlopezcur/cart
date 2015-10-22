@@ -5,7 +5,7 @@ use Illuminate\Support\Collection;
 use Jlopezcur\Cart\Helpers\Helpers;
 use Event;
 
-class CartItemCollection extends Collection {
+class ItemCollection extends Collection {
 
     protected $instance;
 
@@ -17,7 +17,7 @@ class CartItemCollection extends Collection {
     public function addItem($params = []) {
         if (Helpers::isMultiArray($params)) foreach($params as $item) $this->addItem($item);
 
-        $item = new CartItem($params);
+        $item = new Item($params);
         $id = $params['id'];
 
         if($this->has($id)) $this->updateItem($id, $item);
@@ -74,50 +74,23 @@ class CartItemCollection extends Collection {
         Event::fire($this->instance.'.cleared', [$this]);
     }
 
-
     /**
      * Totals
      */
 
-    public function getTotalQuantity() {
-        if ($this->isEmpty()) return 0;
+    public function getQuantity() {
         return $this->sum(function($item) { return $item->quantity; });
     }
 
-    public function getSubTotal($type = 'price') {
-        $sum = $this->sum(function($item) use ($type) { return $item->getSubTotal($type); });
-        $out = floatval($sum); if ($type == 'points') $out = floor($sum);
-        return $out;
-    }
-
-    public function getSubTotalWithoutConditions($type = 'price') {
-        if ($this->isEmpty()) return 0;
-        $sum = $this->sum(function($item) use ($type) { return $item->getPriceSum($type); });
-        $out = floatval($sum); if ($type == 'points') $out = floor($sum);
-        return $out;
+    public function getSubTotal($type = 'price', $conditions = false) {
+        return $this->sum(function($item) use ($type, $conditions) {
+            return $item->getSum($type, $conditions);
+        });
     }
 
     /**
      * Conditions
      */
-
-    public function addItemCondition($id, $condition) {
-        if ($item = $this->get($id)) {
-            Event::fire($this->instance.'.adding-item-condition', [$id, $condition, $this]);
-            $item->addItemCondition($condition);
-            Event::fire($this->instance.'.added-item-condition', [$id, $condition, $this]);
-        }
-        return $this;
-    }
-
-    public function removeItemCondition($id, $condition_name) {
-        if($item = $this->get($id)) {
-            Event::fire($this->instance.'.removing-item-condition', [$id, $condition_name, $this]);
-            $item->removeItemCondition($condition_name);
-            Event::fire($this->instance.'.removed-item-condition', [$id, $condition_name, $this]);
-        }
-        return $this;
-    }
 
     public function countItemConditionDifferentFromType($type) {
         $different = [];

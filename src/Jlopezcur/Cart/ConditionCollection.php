@@ -4,7 +4,7 @@ namespace Jlopezcur\Cart;
 use Illuminate\Support\Collection;
 use Event;
 
-class CartConditionCollection extends Collection {
+class ConditionCollection extends Collection {
 
     protected $instance;
 
@@ -22,7 +22,7 @@ class CartConditionCollection extends Collection {
     }
 
     public function getConditionsByType($type) {
-        return $this->filter(function(CartCondition $condition) use ($type) {
+        return $this->filter(function(Condition $condition) use ($type) {
             return $condition->getType() == $type;
         });
     }

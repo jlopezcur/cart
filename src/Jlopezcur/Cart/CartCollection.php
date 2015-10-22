@@ -12,8 +12,9 @@ class CartCollection extends Collection {
     public function __construct($instance = '') {
         $this->instance = $instance;
         parent::__construct([
-            'items' => new CartItemCollection($this->instance),
-            'conditions' => new CartConditionCollection($this->instance)
+            'items' => new ItemCollection($this->instance),
+            'conditions' => new ConditionCollection($this->instance),
+            'totals' => new TotalCollection($this->instance),
         ]);
         Event::fire($this->getInstance() . '.created', [$this]);
     }
@@ -25,31 +26,23 @@ class CartCollection extends Collection {
     protected function getInstance() { return 'cart.' . $this->instance; }
     public function getItems() { return $this->get('items'); }
     public function getConditions() { return $this->get('conditions'); }
+    public function getTotals() { return $this->get('totals'); }
 
     /**
      * Cart
      */
 
-    public function getTotal($type = 'price') {
-        $subTotal = $this->getItems()->getSubTotal($type);
-        $newTotal = 0.00; if ($type == 'points') $newTotal = 0;
-        $process = 0;
+    public function getTotal($type = 'price', $conditions = false, $totals = false) {
+        $subTotal = $this->getItems()->getSubTotal($type, $conditions);
+        if ($totals) $subTotal += $this->getTotals()->getSubTotal($type, $conditions);
 
-        // if no conditions were added, just return the sub total
-        if(!$this->getConditions()->count()) return $subTotal;
-        $this->getConditions()->each(function($cond) use ($subTotal, &$newTotal, &$process) {
-            if($cond->getTarget() === 'subtotal') {
-                ($process > 0) ? $toBeCalculated = $newTotal : $toBeCalculated = $subTotal;
-                $newTotal = $cond->applyCondition($toBeCalculated);
-                $process++;
-            }
-        });
+        if(!$this->getConditions()->isEmpty()) {
+            $this->getConditions()->each(function($cond) use ($subTotal) {
+                $subTotal = $cond->applyCondition($subTotal);
+            });
+        }
 
-        return $newTotal;
-    }
-
-    public function getTotalWithoutConditions($type = 'price') {
-        return $this->getItems()->getSubTotalWithoutConditions($type);
+        return $subTotal;
     }
 
     public function clear() {
