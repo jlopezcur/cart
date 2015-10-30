@@ -27,6 +27,9 @@ class CartCollection extends Collection {
     public function getItems() { return $this->get('items'); }
     public function getConditions() { return $this->get('conditions'); }
     public function getTotals() { return $this->get('totals'); }
+    public function debug() {
+        return $this;
+    }
 
     /**
      * Cart

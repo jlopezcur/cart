@@ -18,6 +18,7 @@ class Cart {
 
     public function getCart($instance = 'main') { $this->cart = ($this->session->has($instance)) ? $this->session->get($instance) : new CartCollection($instance); return $this->cart; }
     public function saveCart($instance = 'main') { $this->session->put($instance, $this->cart); }
+    public function debug($instance = 'main') { $cart = $this->getCart($instance); return $cart->getTotals(); }
     public function reset($instance = 'main') { $this->session->put($instance, new CartCollection($instance)); }
 
 }

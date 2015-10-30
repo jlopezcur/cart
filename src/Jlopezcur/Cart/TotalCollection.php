@@ -36,28 +36,7 @@ class TotalCollection extends Collection {
     public function updateTotal($id, $data) {
         $total = $this->pull($id);
         Event::fire($this->instance.'.updating', [$total, $this]);
-        foreach($data as $key => $value) {
-            // if the key is currently "quantity" we will need to check if an arithmetic
-            // symbol is present so we can decide if the update of quantity is being added
-            // or being reduced.
-            if ($key == 'quantity') {
-                if(preg_match('/\-/', $value) == 1) {
-                    $value = (int) str_replace('-','',$value);
-
-                    // we will not allowed to reduced quantity to 0, so if the given value
-                    // would result to item quantity of 0, we will not do it.
-                    if(($total[$key] - $value) > 0) {
-                        $total[$key] -= $value;
-                    }
-                } elseif( preg_match('/\+/', $value) == 1 ) {
-                    $total[$key] += (int) str_replace('+','',$value);
-                } else {
-                    $total[$key] += (int) $value;
-                }
-            } else {
-                $total[$key] = $value;
-            }
-        }
+        foreach($data->toArray() as $key => $value) $total->$key = $value;
         $this->put($id, $total);
         Event::fire($this->instance.'.updated', [$total, $this]);
     }

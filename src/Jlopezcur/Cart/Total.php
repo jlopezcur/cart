@@ -33,6 +33,18 @@ class Total {
         }
     }
 
+    public function toArray() {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'price' => $this->price,
+            'points' => $this->points,
+            'quantity' => $this->quantity,
+            'attributes' => $this->attributes,
+            'conditions' => $this->conditions,
+        ];
+    }
+
     protected function validate($args) {
         $validator = Validator::make($args, [
             'id' => 'required',
